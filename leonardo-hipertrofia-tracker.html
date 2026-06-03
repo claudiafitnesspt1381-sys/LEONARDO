@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClaudiaFitness · Leonardo Rodriguez</title>
+<style>
+:root {
+  --bg: #0a0a0a;
+  --s1: #111111;
+  --s2: #1a1a1a;
+  --s3: #222222;
+  --pink: #e8547a;
+  --pink-dim: #7a2d42;
+  --gold: #c9a84c;
+  --grey: #555;
+  --lgrey: #2a2a2a;
+  --text: #e8e8e8;
+  --muted: #888;
+  --green: #4caf7d;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; min-height: 100vh; }
+
+/* HEADER */
+.app-header {
+  background: var(--s1);
+  border-bottom: 1px solid var(--lgrey);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo-area { display: flex; align-items: center; gap: 10px; }
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pink); flex-shrink: 0; }
+.logo-text { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text); }
+.logo-sub { font-family: var(--mono); font-size: 9px; color: var(--grey); letter-spacing: 1px; margin-top: 2px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.saved-badge { font-family: var(--mono); font-size: 10px; color: var(--green); letter-spacing: 1px; opacity: 0; transition: opacity .4s; }
+.saved-badge.show { opacity: 1; }
+.btn-reset { background: transparent; border: 1px solid var(--lgrey); color: var(--grey); font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 6px 12px; border-radius: var(--radius); cursor: pointer; text-transform: uppercase; transition: all .2s; }
+.btn-reset:hover { border-color: var(--pink); color: var(--pink); }
+
+/* WEEK BAR */
+.week-bar { background: var(--s1); border-bottom: 1px solid var(--lgrey); padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+.week-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0; }
+.week-btns { display: flex; gap: 6px; }
+.week-btn { background: var(--s2); border: 1px solid var(--lgrey); color: var(--muted); font-family: var(--mono); font-size: 11px; padding: 5px 14px; border-radius: 20px; cursor: pointer; transition: all .2s; }
+.week-btn.active { background: var(--pink); border-color: var(--pink); color: #fff; font-weight: 700; }
+
+/* DAY TABS */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--lgrey); background: var(--s1); overflow-x: auto; }
+.tab-btn { background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted); font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 12px 16px; cursor: pointer; text-align: left; white-space: nowrap; transition: all .2s; min-width: 90px; }
+.tab-btn.active { border-bottom-color: var(--pink); color: var(--pink); }
+.tab-btn:hover:not(.active) { color: var(--text); }
+.tab-day { font-size: 13px; font-weight: 700; }
+.tab-name { font-size: 9px; letter-spacing: .5px; color: inherit; opacity: .7; margin-top: 2px; text-transform: uppercase; }
+
+/* CONTENT */
+.content { padding: 16px; max-width: 680px; margin: 0 auto; }
+.day-panel { display: none; }
+.day-panel.active { display: block; }
+
+/* SECTION */
+.section { margin-bottom: 20px; }
+.section-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.section-label span { color: var(--grey); }
+
+/* EXERCISE CARD */
+.ex-card {
+  background: var(--s1);
+  border: 1px solid var(--lgrey);
+  border-radius: var(--radius-lg);
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.ex-card:hover { border-color: var(--s3); }
+.ex-card.open { border-color: var(--pink-dim); }
+
+.ex-header {
+  padding: 12px 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  user-select: none;
+}
+.ex-left { flex: 1; }
+.ex-idx { font-family: var(--mono); font-size: 9px; color: var(--grey); letter-spacing: 1px; margin-bottom: 3px; }
+.ex-name { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.ex-muscle { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.ex-toggle { background: transparent; border: none; color: var(--grey); font-size: 18px; cursor: pointer; padding: 0; line-height: 1; margin-top: 2px; transition: transform .2s; flex-shrink: 0; }
+.ex-card.open .ex-toggle { transform: rotate(180deg); color: var(--pink); }
+
+.sets-area { display: none; padding: 0 14px 14px; border-top: 1px solid var(--lgrey); }
+.ex-card.open .sets-area { display: block; }
+.sets-hint { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 1px; padding: 10px 0 8px; }
+.sets-grid { display: grid; gap: 6px; }
+.set-row { display: grid; grid-template-columns: 36px 1fr 1fr 80px; gap: 6px; align-items: center; }
+.set-num { font-family: var(--mono); font-size: 11px; color: var(--grey); text-align: center; }
+.set-input { background: var(--s2); border: 1px solid var(--lgrey); border-radius: var(--radius); color: var(--text); font-family: var(--mono); font-size: 13px; padding: 8px 10px; width: 100%; text-align: center; transition: border-color .2s; }
+.set-input:focus { outline: none; border-color: var(--pink); }
+.set-input::placeholder { color: var(--grey); font-size: 11px; }
+.set-stat { font-family: var(--mono); font-size: 10px; color: var(--grey); text-align: right; line-height: 1.4; }
+.set-stat .best { color: var(--gold); }
+.set-stat .avg { color: var(--muted); }
+.col-labels { display: grid; grid-template-columns: 36px 1fr 1fr 80px; gap: 6px; margin-bottom: 4px; }
+.col-lbl { font-family: var(--mono); font-size: 9px; color: var(--grey); letter-spacing: 1px; text-transform: uppercase; text-align: center; }
+.col-lbl:last-child { text-align: right; }
+
+/* SUPER BADGE */
+.super-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--pink);
+  background: rgba(232,84,122,.1);
+  border: 1px solid var(--pink-dim);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+/* CIRCUIT */
+.circuit-card {
+  background: var(--s1);
+  border: 1px solid var(--lgrey);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.circuit-header {
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.circuit-title { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }
+.circuit-body { display: none; padding: 0 14px 14px; }
+.circuit-card.open .circuit-body { display: block; }
+.circuit-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--lgrey); }
+.circuit-item:last-child { border-bottom: none; }
+.ci-name { font-size: 13px; color: var(--text); }
+.ci-vol { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* HISTORY MODAL */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+.modal-bg.show { display: flex; }
+.modal { background: var(--s1); border: 1px solid var(--lgrey); border-radius: 16px 16px 0 0; width: 100%; max-width: 680px; max-height: 80vh; overflow-y: auto; padding: 20px 16px 40px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-title { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--pink); text-transform: uppercase; }
+.modal-close { background: transparent; border: none; color: var(--grey); font-size: 20px; cursor: pointer; }
+.hist-week { margin-bottom: 16px; }
+.hist-week-label { font-family: var(--mono); font-size: 10px; color: var(--grey); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid var(--lgrey); padding-bottom: 6px; }
+.hist-ex { margin-bottom: 6px; }
+.hist-ex-name { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.hist-sets { display: flex; gap: 6px; flex-wrap: wrap; }
+.hist-pill { font-family: var(--mono); font-size: 11px; background: var(--s2); border: 1px solid var(--lgrey); border-radius: 20px; padding: 3px 10px; color: var(--text); }
+
+/* BOTTOM BAR */
+.bottom-bar {
+  background: var(--s1);
+  border-top: 1px solid var(--lgrey);
+  padding: 10px 16px;
+  display: flex;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.btn-primary { flex: 1; background: var(--pink); border: none; border-radius: var(--radius); color: #fff; font-family: var(--font); font-size: 12px; font-weight: 700; letter-spacing: 1px; padding: 12px; cursor: pointer; text-transform: uppercase; transition: all .2s; }
+.btn-primary:hover { opacity: .85; }
+.btn-primary:active { transform: scale(.98); }
+.btn-secondary { background: var(--s2); border: 1px solid var(--lgrey); color: var(--grey); font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 12px 16px; border-radius: var(--radius); cursor: pointer; text-transform: uppercase; transition: all .2s; }
+.btn-secondary:hover { border-color: var(--pink); color: var(--pink); }
+
+.toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: var(--green); color: #000; font-size: 12px; font-weight: 700; letter-spacing: 1px; padding: 10px 20px; border-radius: 30px; z-index: 300; opacity: 0; transition: opacity .3s; pointer-events: none; text-transform: uppercase; white-space: nowrap; }
+.toast.show { opacity: 1; }
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=DM+Mono&display=swap');
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="logo-area">
+    <div class="logo-dot"></div>
+    <div>
+      <div class="logo-text">ClaudiaFitness</div>
+      <div class="logo-sub">Leonardo Rodriguez &nbsp;·&nbsp; Hipertrofia Avanzado</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="saved-badge" id="savedBadge">✓ Guardado</span>
+    <button class="btn-reset" onclick="confirmReset()">Resetear</button>
+  </div>
+</div>
+
+<div class="week-bar">
+  <span class="week-label">Semana</span>
+  <div class="week-btns" id="weekBtns"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showDay(0)">
+    <div class="tab-day">Día A</div>
+    <div class="tab-name">Pierna · Hombro</div>
+  </button>
+  <button class="tab-btn" onclick="showDay(1)">
+    <div class="tab-day">Día B</div>
+    <div class="tab-name">Pecho · Espalda</div>
+  </button>
+  <button class="tab-btn" onclick="showDay(2)">
+    <div class="tab-day">Día C</div>
+    <div class="tab-name">Pierna · Hombro</div>
+  </button>
+  <button class="tab-btn" onclick="showDay(3)">
+    <div class="tab-day">Día D</div>
+    <div class="tab-name">Pecho · Espalda</div>
+  </button>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════ DÍA A ═══════════════ -->
+<div class="day-panel active" id="day-0">
+
+  <div class="section">
+    <div class="section-label">Activación neural <span>no cuenta en volumen</span></div>
+    <div id="ex-A-0" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('A-0')">
+        <div class="ex-left">
+          <div class="ex-idx">01 · ACTIVACIÓN</div>
+          <div class="ex-name">Extensión cuádriceps en máquina</div>
+          <div class="ex-muscle">Cuádriceps · Peso leve · Isometría 2 seg</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="sets-hint">2 series × 15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-A-0"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Compuesto principal</div>
+    <div id="ex-A-1" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('A-1')">
+        <div class="ex-left">
+          <div class="ex-idx">02 · CUÁDRICEPS</div>
+          <div class="ex-name">Sentadilla con barra (high bar)</div>
+          <div class="ex-muscle">Cuádriceps · Glúteo · Core · Descanso 3 min</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="sets-hint">5 series × 5 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-A-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 1 — Cuádriceps / Glúteo</div>
+    <div id="ex-A-2" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('A-2')">
+        <div class="ex-left">
+          <div class="ex-idx">03A · CUÁDRICEPS</div>
+          <div class="ex-name">Hack squat en máquina</div>
+          <div class="ex-muscle">Cuádriceps dominante · Sin carga axial lumbar</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 8-10 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-A-2"></div>
+      </div>
+    </div>
+    <div id="ex-A-3" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('A-3')">
+        <div class="ex-left">
+          <div class="ex-idx">03B · GLÚTEO</div>
+          <div class="ex-name">Hip thrust con barra</div>
+          <div class="ex-muscle">Glúteo mayor · Carga horizontal · Sin estrés discal</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 10-12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-A-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 2 — Femoral / Aductores</div>
+    <div id="ex-A-4" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('A-4')">
+        <div class="ex-left">
+          <div class="ex-idx">04A · FEMORAL</div>
+          <div class="ex-name">Curl femoral sentado en máquina</div>
+          <div class="ex-muscle">Isquiotibiales · Espalda apoyada · Excéntrico lento</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 10-12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-A-4"></div>
+      </div>
+    </div>
+    <div id="ex-A-5" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('A-5')">
+        <div class="ex-left">
+          <div class="ex-idx">04B · ADUCTORES</div>
+          <div class="ex-name">Aductor en máquina</div>
+          <div class="ex-muscle">Aductores · Glúteo menor · Sostén 1 seg</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12-15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-A-5"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 3 — Hombros</div>
+    <div id="ex-A-6" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('A-6')">
+        <div class="ex-left">
+          <div class="ex-idx">05A · DELTOIDES</div>
+          <div class="ex-name">Press hombro sentado (máquina / mancuernas)</div>
+          <div class="ex-muscle">Deltoides anterior y medio · Core activo</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 8-10 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-A-6"></div>
+      </div>
+    </div>
+    <div id="ex-A-7" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('A-7')">
+        <div class="ex-left">
+          <div class="ex-idx">05B · DELTOIDES MEDIO</div>
+          <div class="ex-name">Elevación lateral con polea baja</div>
+          <div class="ex-muscle">Deltoides medio · Tensión constante todo el rango</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12-15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-A-7"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Finalizador</div>
+    <div id="ex-A-8" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('A-8')">
+        <div class="ex-left">
+          <div class="ex-idx">06 · PANTORRILLAS</div>
+          <div class="ex-name">Gemelo de pie en máquina o escalón</div>
+          <div class="ex-muscle">Gastrocnemio · Soleo · Rango completo</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="sets-hint">4 series × 15-20 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-A-8"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DÍA B ═══════════════ -->
+<div class="day-panel" id="day-1">
+
+  <div class="section">
+    <div class="section-label">Compuesto principal — Push</div>
+    <div id="ex-B-0" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('B-0')">
+        <div class="ex-left">
+          <div class="ex-idx">01 · PECHO</div>
+          <div class="ex-name">Press banca con barra</div>
+          <div class="ex-muscle">Pectoral mayor · Tríceps · Deltoides anterior · Desc. 3 min</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="sets-hint">5 series × 5 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-B-0"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Compuesto principal — Pull</div>
+    <div id="ex-B-1" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('B-1')">
+        <div class="ex-left">
+          <div class="ex-idx">02 · ESPALDA</div>
+          <div class="ex-name">Jalón al pecho agarre ancho</div>
+          <div class="ex-muscle">Dorsal · Bíceps · Romboides · Excéntrico 3 seg</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="sets-hint">5 series × 6-8 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-B-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 1 — Pecho / Espalda media</div>
+    <div id="ex-B-2" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('B-2')">
+        <div class="ex-left">
+          <div class="ex-idx">03A · PECHO CLAVICULAR</div>
+          <div class="ex-name">Press inclinado con mancuernas</div>
+          <div class="ex-muscle">Pectoral clavicular · Tríceps · 30-45°</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 10-12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-B-2"></div>
+      </div>
+    </div>
+    <div id="ex-B-3" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('B-3')">
+        <div class="ex-left">
+          <div class="ex-idx">03B · ESPALDA MEDIA</div>
+          <div class="ex-name">Remo en polea baja agarre neutro</div>
+          <div class="ex-muscle">Dorsal · Romboides · Trapecio medio · Torso estático</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 10-12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-B-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 2 — Pecho / Dorsal aislado</div>
+    <div id="ex-B-4" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('B-4')">
+        <div class="ex-left">
+          <div class="ex-idx">04A · PECHO</div>
+          <div class="ex-name">Aperturas en polea cruzada</div>
+          <div class="ex-muscle">Pectoral mayor · Tensión constante</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12-15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-B-4"></div>
+      </div>
+    </div>
+    <div id="ex-B-5" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('B-5')">
+        <div class="ex-left">
+          <div class="ex-idx">04B · DORSAL</div>
+          <div class="ex-name">Pullover en polea o con mancuerna</div>
+          <div class="ex-muscle">Dorsal · Serrato · Pectoral esternal</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-B-5"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 3 — Tríceps / Bíceps</div>
+    <div id="ex-B-6" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('B-6')">
+        <div class="ex-left">
+          <div class="ex-idx">05A · TRÍCEPS</div>
+          <div class="ex-name">Extensión tríceps en polea (cuerda)</div>
+          <div class="ex-muscle">Tríceps cabeza lateral y media · Codos fijos</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12-15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-B-6"></div>
+      </div>
+    </div>
+    <div id="ex-B-7" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('B-7')">
+        <div class="ex-left">
+          <div class="ex-idx">05B · BÍCEPS</div>
+          <div class="ex-name">Curl en polea baja (barra EZ o cuerda)</div>
+          <div class="ex-muscle">Bíceps braquial · Tensión constante · Excéntrico 3 seg</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12-15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-B-7"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DÍA C ═══════════════ -->
+<div class="day-panel" id="day-2">
+
+  <div class="section">
+    <div class="section-label">Compuesto principal — Femoral</div>
+    <div id="ex-C-0" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('C-0')">
+        <div class="ex-left">
+          <div class="ex-idx">01 · GLÚTEO / FEMORAL</div>
+          <div class="ex-name">Prensa 45° con pies altos</div>
+          <div class="ex-muscle">Glúteo · Isquiotibiales · Sin carga axial lumbar</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="sets-hint">5 series × 6-8 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-C-0"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 1 — Femoral / Glúteo</div>
+    <div id="ex-C-1" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('C-1')">
+        <div class="ex-left">
+          <div class="ex-idx">02A · FEMORAL</div>
+          <div class="ex-name">Curl femoral tumbado en máquina</div>
+          <div class="ex-muscle">Isquiotibiales · Posición elongada · 4 seg excéntrico</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 10-12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-C-1"></div>
+      </div>
+    </div>
+    <div id="ex-C-2" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('C-2')">
+        <div class="ex-left">
+          <div class="ex-idx">02B · GLÚTEO</div>
+          <div class="ex-name">Extensión de cadera en polea baja</div>
+          <div class="ex-muscle">Glúteo mayor · Unilateral · Columna neutra</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12-15 reps c/lado</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-C-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 2 — Cuádriceps / Abductores</div>
+    <div id="ex-C-3" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('C-3')">
+        <div class="ex-left">
+          <div class="ex-idx">03A · CUÁDRICEPS</div>
+          <div class="ex-name">Sentadilla búlgara con mancuernas</div>
+          <div class="ex-muscle">Cuádriceps · Glúteo · Sin carga axial de barra</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">3 series × 10 reps c/lado</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-C-3"></div>
+      </div>
+    </div>
+    <div id="ex-C-4" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('C-4')">
+        <div class="ex-left">
+          <div class="ex-idx">03B · GLÚTEO MEDIO</div>
+          <div class="ex-name">Abductor en máquina</div>
+          <div class="ex-muscle">Glúteo medio · Tensor fascia lata · Sostén 1 seg</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">3 series × 15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-C-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 3 — Hombros énfasis posterior</div>
+    <div id="ex-C-5" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('C-5')">
+        <div class="ex-left">
+          <div class="ex-idx">04A · DELTOIDES POST. / MANGUITO</div>
+          <div class="ex-name">Face pull en polea (cuerda)</div>
+          <div class="ex-muscle">Deltoides posterior · Manguito rotador · Codos altos</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-C-5"></div>
+      </div>
+    </div>
+    <div id="ex-C-6" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('C-6')">
+        <div class="ex-left">
+          <div class="ex-idx">04B · DELTOIDES MEDIO</div>
+          <div class="ex-name">Elevación lateral con mancuernas</div>
+          <div class="ex-muscle">Deltoides medio · Técnica estricta · No superar horizontal</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12-15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-C-6"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Finalizador</div>
+    <div id="ex-C-7" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('C-7')">
+        <div class="ex-left">
+          <div class="ex-idx">05 · SOLEO</div>
+          <div class="ex-name">Soleo sentado en máquina</div>
+          <div class="ex-muscle">Soleo · Rodilla 90° · Aisla el soleo del gemelo</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="sets-hint">4 series × 15-20 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-C-7"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DÍA D ═══════════════ -->
+<div class="day-panel" id="day-3">
+
+  <div class="section">
+    <div class="section-label">Compuesto principal — Pull</div>
+    <div id="ex-D-0" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('D-0')">
+        <div class="ex-left">
+          <div class="ex-idx">01 · ESPALDA</div>
+          <div class="ex-name">Remo con barra en Smith (pronado)</div>
+          <div class="ex-muscle">Dorsal · Romboides · 45-60° torso · Sin riesgo L4-L5</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="sets-hint">5 series × 6-8 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-D-0"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Compuesto — Push variación</div>
+    <div id="ex-D-1" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('D-1')">
+        <div class="ex-left">
+          <div class="ex-idx">02 · PECHO INFERIOR</div>
+          <div class="ex-name">Press declinado con mancuernas</div>
+          <div class="ex-muscle">Pectoral esternal · Tríceps · Core activo</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="sets-hint">4 series × 8-10 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-D-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 1 — Espalda ancha / Pecho</div>
+    <div id="ex-D-2" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('D-2')">
+        <div class="ex-left">
+          <div class="ex-idx">03A · DORSAL</div>
+          <div class="ex-name">Jalón al pecho agarre cerrado neutro</div>
+          <div class="ex-muscle">Dorsal · Mayor bíceps · Variación del Día B</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 10-12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-D-2"></div>
+      </div>
+    </div>
+    <div id="ex-D-3" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('D-3')">
+        <div class="ex-left">
+          <div class="ex-idx">03B · PECHO</div>
+          <div class="ex-name">Aperturas con mancuernas banco plano</div>
+          <div class="ex-muscle">Pectoral mayor · Estiramiento máximo · Movimiento lento</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-D-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Biserie 2 — Trapecios / Hombro anterior</div>
+    <div id="ex-D-4" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('D-4')">
+        <div class="ex-left">
+          <div class="ex-idx">04A · TRAPECIO</div>
+          <div class="ex-name">Encogimiento con mancuernas</div>
+          <div class="ex-muscle">Trapecio superior · Movimiento vertical puro</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">4 series × 12-15 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-D-4"></div>
+      </div>
+    </div>
+    <div id="ex-D-5" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('D-5')">
+        <div class="ex-left">
+          <div class="ex-idx">04B · DELTOIDES ANTERIOR</div>
+          <div class="ex-name">Elevación frontal con polea baja</div>
+          <div class="ex-muscle">Deltoides anterior · Core activo · Hasta horizontal</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">3 series × 12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-D-5"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Finalizador — Brazos</div>
+    <div id="ex-D-6" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('D-6')">
+        <div class="ex-left">
+          <div class="ex-idx">05A · BÍCEPS</div>
+          <div class="ex-name">Curl predicador con barra EZ</div>
+          <div class="ex-muscle">Bíceps braquial · Aislamiento máximo · Excéntrico lento</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">3 series × 10-12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-D-6"></div>
+      </div>
+    </div>
+    <div id="ex-D-7" class="ex-card">
+      <div class="ex-header" onclick="toggleEx('D-7')">
+        <div class="ex-left">
+          <div class="ex-idx">05B · TRÍCEPS</div>
+          <div class="ex-name">Fondos en paralelas o banco</div>
+          <div class="ex-muscle">Tríceps · Torso vertical · Con lastre si necesario</div>
+        </div>
+        <button class="ex-toggle">▾</button>
+      </div>
+      <div class="sets-area">
+        <div class="super-badge">⇄ biserie</div>
+        <div class="sets-hint">3 series × 10-12 reps</div>
+        <div class="col-labels"><span class="col-lbl">Set</span><span class="col-lbl">Kg</span><span class="col-lbl">Reps</span><span class="col-lbl">Mejor / Prom</span></div>
+        <div class="sets-grid" id="sets-D-7"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end content -->
+
+<div style="max-width:680px;margin:0 auto">
+<div class="bottom-bar">
+  <button class="btn-secondary" onclick="openHistory()">Historial</button>
+  <button class="btn-primary" onclick="saveData()">Guardar sesión</button>
+</div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="modal-bg" id="histModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Historial de pesos</span>
+      <button class="modal-close" onclick="closeHistory()">×</button>
+    </div>
+    <div id="histContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Sesión guardada ✓</div>
+
+<script>
+const API = 'https://claudiafitness-api-production.up.railway.app';
+const CLIENT_ID = 'leonardo-rodriguez';
+const WEEKS = 8;
+const DAYS = ['A','B','C','D'];
+const DAY_NAMES = {
+  A: 'Día A — Pierna + Hombro',
+  B: 'Día B — Pecho + Espalda',
+  C: 'Día C — Pierna + Hombro',
+  D: 'Día D — Pecho + Espalda'
+};
+const SETS_CFG = {
+  A: [2, 5, 4, 4, 4, 4, 4, 4, 4],
+  B: [5, 5, 4, 4, 4, 4, 4, 4],
+  C: [5, 4, 4, 3, 3, 4, 4, 4],
+  D: [5, 4, 4, 4, 4, 3, 3, 3]
+};
+
+let currentWeek = 1;
+let currentDay = 0;
+let db = {}; // cache local: db[week][day][exIdx][set] = {kg, reps}
+let saveTimer = null;
+let pendingSaves = {};
+
+// ── Cache helpers ──────────────────────────────────────────
+function cacheGet(week, day, ei, s, field) {
+  return db[week]?.[day]?.[ei]?.[s]?.[field] || '';
+}
+function cacheSet(week, day, ei, s, field, val) {
+  if (!db[week]) db[week] = {};
+  if (!db[week][day]) db[week][day] = {};
+  if (!db[week][day][ei]) db[week][day][ei] = {};
+  if (!db[week][day][ei][s]) db[week][day][ei][s] = {};
+  db[week][day][ei][s][field] = val;
+}
+
+// ── API calls ──────────────────────────────────────────────
+async function loadFromAPI() {
+  setStatus('Cargando...', false);
+  try {
+    const res = await fetch(`${API}/weights/${CLIENT_ID}`);
+    const rows = await res.json();
+    db = {};
+    rows.forEach(r => {
+      if (r.kg)   cacheSet(r.week, r.day, r.exercise_idx, r.set_num, 'kg',  String(r.kg));
+      if (r.reps) cacheSet(r.week, r.day, r.exercise_idx, r.set_num, 'rep', String(r.reps));
+    });
+    setStatus('✓ Sincronizado', true);
+    buildWeekBtns();
+    renderAllSets();
+  } catch(e) {
+    setStatus('Sin conexión — modo offline', false);
+    buildWeekBtns();
+    renderAllSets();
+  }
+}
+
+async function saveToAPI(week, day, ei, s) {
+  const kg   = cacheGet(week, day, ei, s, 'kg');
+  const reps = cacheGet(week, day, ei, s, 'rep');
+  try {
+    await fetch(`${API}/weights`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        client_id: CLIENT_ID,
+        week: parseInt(week),
+        day,
+        exercise_idx: parseInt(ei),
+        set_num: parseInt(s),
+        kg:   kg   ? parseFloat(kg)   : null,
+        reps: reps ? parseInt(reps)   : null
+      })
+    });
+    setStatus('✓ Guardado', true);
+  } catch(e) {
+    setStatus('Error al guardar', false);
+  }
+}
+
+function autoSave(week, day, ei, s, field, val) {
+  cacheSet(week, day, ei, s, field, val);
+  updateStat(day, ei, s);
+  const key = `${week}-${day}-${ei}-${s}`;
+  pendingSaves[key] = {week, day, ei, s};
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    setStatus('Guardando...', false);
+    for (const k of Object.keys(pendingSaves)) {
+      const p = pendingSaves[k];
+      await saveToAPI(p.week, p.day, p.ei, p.s);
+      delete pendingSaves[k];
+    }
+  }, 800);
+}
+
+// ── UI ─────────────────────────────────────────────────────
+function setStatus(msg, ok) {
+  const b = document.getElementById('savedBadge');
+  b.textContent = msg;
+  b.style.color = ok ? 'var(--green)' : 'var(--muted)';
+  b.classList.add('show');
+  if (ok) setTimeout(() => b.classList.remove('show'), 2500);
+}
+
+function buildWeekBtns() {
+  const c = document.getElementById('weekBtns');
+  c.innerHTML = '';
+  for (let w = 1; w <= WEEKS; w++) {
+    const b = document.createElement('button');
+    b.className = 'week-btn' + (w === currentWeek ? ' active' : '');
+    b.textContent = `S${w}`;
+    b.onclick = () => { currentWeek = w; buildWeekBtns(); renderAllSets(); };
+    c.appendChild(b);
+  }
+}
+
+function getBestAvg(day, ei, s) {
+  let vals = [];
+  for (let w = 1; w <= WEEKS; w++) {
+    const v = parseFloat(cacheGet(w, day, ei, s, 'kg'));
+    if (!isNaN(v) && v > 0) vals.push(v);
+  }
+  if (!vals.length) return {best: null, avg: null};
+  return {
+    best: Math.max(...vals).toFixed(1),
+    avg: (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)
+  };
+}
+
+function updateStat(day, ei, s) {
+  const el = document.getElementById(`stat-${day}-${ei}-${s}`);
+  if (!el) return;
+  const {best, avg} = getBestAvg(day, ei, s);
+  el.innerHTML = (best ? `<div class="best">↑ ${best} kg</div>` : '') +
+                 (avg  ? `<div class="avg">∅ ${avg} kg</div>`  : '');
+}
+
+function buildSetsGrid(day, ei, numSets) {
+  const grid = document.getElementById(`sets-${day}-${ei}`);
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (let s = 1; s <= numSets; s++) {
+    const kg  = cacheGet(currentWeek, day, ei, s, 'kg');
+    const rep = cacheGet(currentWeek, day, ei, s, 'rep');
+    const {best, avg} = getBestAvg(day, ei, s);
+    const row = document.createElement('div');
+    row.className = 'set-row';
+    row.innerHTML = `
+      <div class="set-num">${s}</div>
+      <input class="set-input" type="number" placeholder="kg" value="${kg}"
+        oninput="autoSave(${currentWeek},'${day}',${ei},${s},'kg',this.value)"
+        inputmode="decimal" step="0.5">
+      <input class="set-input" type="number" placeholder="reps" value="${rep}"
+        oninput="autoSave(${currentWeek},'${day}',${ei},${s},'rep',this.value)"
+        inputmode="numeric">
+      <div class="set-stat" id="stat-${day}-${ei}-${s}">
+        ${best ? `<div class="best">↑ ${best} kg</div>` : ''}
+        ${avg  ? `<div class="avg">∅ ${avg} kg</div>`  : ''}
+      </div>`;
+    grid.appendChild(row);
+  }
+}
+
+function renderAllSets() {
+  DAYS.forEach(day => {
+    SETS_CFG[day].forEach((numSets, ei) => buildSetsGrid(day, ei, numSets));
+  });
+}
+
+function toggleEx(id) {
+  document.getElementById(`ex-${id}`).classList.toggle('open');
+}
+
+function showDay(idx) {
+  document.querySelectorAll('.day-panel').forEach((p,i) => p.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab-btn').forEach((b,i)   => b.classList.toggle('active', i===idx));
+  currentDay = idx;
+}
+
+function saveData() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+async function confirmReset() {
+  if (!confirm('¿Resetear TODOS los datos de Leonardo?')) return;
+  try {
+    await fetch(`${API}/weights/${CLIENT_ID}`, {method:'DELETE'});
+    db = {};
+    renderAllSets();
+    setStatus('Datos eliminados', false);
+  } catch(e) { setStatus('Error al resetear', false); }
+}
+
+function openHistory() {
+  const c = document.getElementById('histContent');
+  c.innerHTML = '';
+  DAYS.forEach(day => {
+    let dayHtml = '';
+    for (let w = 1; w <= WEEKS; w++) {
+      let exBlocks = '';
+      const exNames = [...document.querySelectorAll(`#day-${DAYS.indexOf(day)} .ex-name`)].map(e => e.textContent);
+      SETS_CFG[day].forEach((numSets, ei) => {
+        let pills = '';
+        for (let s = 1; s <= numSets; s++) {
+          const kg  = cacheGet(w, day, ei, s, 'kg');
+          const rep = cacheGet(w, day, ei, s, 'rep');
+          if (kg || rep) pills += `<span class="hist-pill">S${s}: ${kg||'—'}kg × ${rep||'—'}</span>`;
+        }
+        if (pills) exBlocks += `<div class="hist-ex"><div class="hist-ex-name">${exNames[ei]||'Ejercicio '+(ei+1)}</div><div class="hist-sets">${pills}</div></div>`;
+      });
+      if (exBlocks) dayHtml += `<div class="hist-week"><div class="hist-week-label">Semana ${w}</div>${exBlocks}</div>`;
+    }
+    if (dayHtml) c.innerHTML += `<div style="margin-bottom:20px"><div style="font-family:var(--mono);font-size:10px;color:var(--pink);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--lgrey)">${DAY_NAMES[day]}</div>${dayHtml}</div>`;
+  });
+  if (!c.innerHTML) c.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0">No hay datos registrados aún</p>';
+  document.getElementById('histModal').classList.add('show');
+}
+
+function closeHistory() {
+  document.getElementById('histModal').classList.remove('show');
+}
+
+document.getElementById('histModal').addEventListener('click', function(e) {
+  if (e.target === this) closeHistory();
+});
+
+// Arrancar
+loadFromAPI();
+</script>
+</body>
+</html>
